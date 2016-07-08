@@ -1,7 +1,9 @@
 package com.daimajia.slider.library;
 
 import android.content.Context;
+import android.provider.SyncStateContract;
 import android.support.v4.view.PagerAdapter;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -38,6 +40,8 @@ public class SliderAdapter extends PagerAdapter implements BaseSliderView.ImageL
 
     @Override
     public int getItemPosition(Object object) {
+        // Consider it only called when notifyDataSetChange, so added item will not change in this case.
+        // http://stackoverflow.com/questions/10728076/when-should-getitemposition-consider-changes-of-an-items-position
         return POSITION_NONE;
     }
 
@@ -72,6 +76,9 @@ public class SliderAdapter extends PagerAdapter implements BaseSliderView.ImageL
 
     @Override
     public void destroyItem(ViewGroup container, int position, Object object) {
+        BaseSliderView b = mImageContents.get(position);
+        // Give the slider to free resource;
+        b.onDestroyView();
         container.removeView((View) object);
     }
 

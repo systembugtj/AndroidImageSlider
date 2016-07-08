@@ -207,6 +207,7 @@ public abstract class BaseSliderView {
             mLoadListener.onStart(me);
         }
 
+        // TODO: use a interface instead of loading image here. Then remove dependency on picasso.
         Picasso p = (mPicasso != null) ? mPicasso : Picasso.with(mContext);
         RequestCreator rq = null;
         if(mUrl!=null){
@@ -324,5 +325,13 @@ public abstract class BaseSliderView {
      */
     public void setPicasso(Picasso picasso) {
         mPicasso = picasso;
+    }
+
+
+    /*
+     * Allow slider to free resource.
+     */
+    public void onDestroyView() {
+
     }
 }
