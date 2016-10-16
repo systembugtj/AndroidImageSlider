@@ -33,7 +33,7 @@ dependencies {
 
 
 def libraryGroupId = 'com.conouch.view'
-def libraryArtifactId = 'image-slide'
+def libraryArtifactId = 'image-slider'
 def libraryVersion = '1.0.0'
 
 publishing {
