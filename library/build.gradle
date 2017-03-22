@@ -2,14 +2,21 @@ apply plugin: 'com.android.library'
 apply plugin: 'com.jfrog.artifactory'
 apply plugin: 'maven-publish'
 
+def repo_context_url = hasProperty('artifactory_context_url') ? artifactory_context_url : System.getenv('artifactory_context_url')
+def repo_username = hasProperty('artifactory_username') ? artifactory_username : System.getenv('artifactory_username')
+def repo_password = hasProperty('artifactory_password') ? artifactory_password : System.getenv('artifactory_password')
+def repo_key = hasProperty('artifactory_key') ? artifactory_key : System.getenv('artifactory_key')
+
+def VERSION_NUMBER = "1.0.0"
+def VERSION_NAME = System.getenv('AUTO_BUILD_NUMBER') ? "${VERIOSN_NUMBER}-${System.getenv('AUTO_BUILD_NUMBER')}" : VERSION_NUMBER
 
 android {
-    compileSdkVersion 22
+    compileSdkVersion 23
     buildToolsVersion "23.0.3"
 
     defaultConfig {
-        minSdkVersion 8
-        targetSdkVersion 22
+        minSdkVersion 16
+        targetSdkVersion 23
         versionCode 15
         versionName "1.1.5"
     }
@@ -25,8 +32,8 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:appcompat-v7:22.1.1'
-    compile "com.android.support:support-v4:22.1.1"
+    compile 'com.android.support:appcompat-v7:23.4.0'
+    compile "com.android.support:support-v4:23.4.0"
     compile 'com.squareup.picasso:picasso:2.5.2'
     compile 'com.nineoldandroids:library:2.4.0'
 }
@@ -34,7 +41,7 @@ dependencies {
 
 def libraryGroupId = 'com.conouch.view'
 def libraryArtifactId = 'image-slider'
-def libraryVersion = '1.0.0'
+def libraryVersion = VERSION_NAME
 
 publishing {
     publications {
@@ -49,13 +56,13 @@ publishing {
 }
 
 artifactory {
-    contextUrl = artifactory_context_url
+    contextUrl = repo_context_url
     publish {
         repository {
-            repoKey = 'libs-release-local'
+            repoKey = repo_key
 
-            username = artifactory_username
-            password = artifactory_password
+            username = repo_username
+            password = repo_password
         }
         defaults {
             publications('aar')
