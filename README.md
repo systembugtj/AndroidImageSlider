@@ -1,4 +1,4 @@
-# Image Slider
+# Image Slider [![Build Status](https://travis-ci.org/systembugtj/ImageSlider.svg?branch=master)](https://travis-ci.org/systembugtj/ImageSlider)
 
 Forked from https://github.com/daimajia/AndroidImageSlider
 
