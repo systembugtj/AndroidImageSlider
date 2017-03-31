@@ -1,17 +1,9 @@
-# Android Image Slider [![Build Status](https://travis-ci.org/daimajia/AndroidImageSlider.svg)](https://travis-ci.org/daimajia/AndroidImageSlider)
+# Image Slider
 
-[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/daimajia/AndroidImageSlider?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
- 
+Forked from https://github.com/daimajia/AndroidImageSlider
+
 This is an amazing image slider for the Android platform. I decided to open source this because there is really not an attractive, convenient slider widget in Android.
- 
-You can easily load images from an internet URL, drawable, or file. And there are many kinds of amazing animations you can choose. :-D
- 
-## Demo
- 
-![](http://ww3.sinaimg.cn/mw690/610dc034jw1egzor66ojdg20950fknpe.gif)
 
-[Download Apk](https://github.com/daimajia/AndroidImageSlider/releases/download/v1.0.8/demo-1.0.8.apk)
- 
 ## Usage
 
 ### Step 1
@@ -19,11 +11,16 @@ You can easily load images from an internet URL, drawable, or file. And there ar
 #### Gradle
 
 ```groovy
+allprojects {
+    repositories {
+        ...
+        maven { url 'https://jitpack.io' }
+    }
+}
+
+
 dependencies {
-    	compile "com.android.support:support-v4:+"
-    	compile 'com.squareup.picasso:picasso:2.3.2'
-    	compile 'com.nineoldandroids:library:2.4.0'
-    	compile 'com.daimajia.slider:library:1.1.5@aar'
+    compile 'com.github.systembugtj:imageslider:1.0.1'
 }
 ```
 
@@ -31,29 +28,19 @@ dependencies {
 #### Maven
 
 ```xml
+<repositories>
+    <repository>
+        <id>jitpack.io</id>
+        <url>https://jitpack.io</url>
+    </repository>
+</repositories>
+
 <dependency>
-    <groupId>com.squareup.picasso</groupId>
-    <artifactId>picasso</artifactId>
-    <version>2.3.2</version>
-</dependency>
-<dependency>
-    <groupId>com.nineoldandroids</groupId>
-    <artifactId>library</artifactId>
-    <version>2.4.0</version>
-</dependency>
-<dependency>
-    <groupId>com.daimajia.slider</groupId>
-    <artifactId>library</artifactId>
-    <version>1.1.2</version>
-    <type>apklib</type>
+    <groupId>com.github.systembugtj</groupId>
+    <artifactId>imageslider</artifactId>
+    <version>1.0.1</version>
 </dependency>
 ```
-
-#### Eclipse
-
-For Eclipse users, I provided a sample project which orgnized as Eclipse way. You can download it from [here](https://github.com/daimajia/AndroidImageSlider/releases/download/v1.0.9/AndroidImageSlider-Eclipse.zip), and make some changes to fit your project.
-
-Notice: It's the version of 1.0.9, it may not update any more. You can update manually by yourself.
 
 ### Step 2
 
@@ -94,8 +81,6 @@ There are some default indicators. If you want to use a provided indicator:
         />
 ```
 
-[Code example](https://github.com/daimajia/AndroidImageSlider/blob/master/demo%2Fsrc%2Fmain%2Fjava%2Fcom%2Fdaimajia%2Fslider%2Fdemo%2FMainActivity.java)
- 
 ====
  
 ## Advanced usage
