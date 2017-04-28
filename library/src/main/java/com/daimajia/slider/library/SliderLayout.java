@@ -610,8 +610,11 @@ public class SliderLayout extends RelativeLayout{
         if(getRealAdapter() == null)
             throw new IllegalStateException("You did not set a slider adapter");
 
-        return mViewPager.getCurrentItem() % getRealAdapter().getCount();
-
+        if (getRealAdapter().getCount() > 0) {
+            return mViewPager.getCurrentItem() % getRealAdapter().getCount();
+        } else {
+            return 0;
+        }
     }
 
     /**
