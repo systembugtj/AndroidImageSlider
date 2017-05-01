@@ -1,15 +1,19 @@
 package com.daimajia.slider.demo;
 
 import android.content.Intent;
+import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
+import android.transition.Slide;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -18,13 +22,23 @@ import com.daimajia.slider.library.Animations.DescriptionAnimation;
 import com.daimajia.slider.library.Indicators.PagerIndicator;
 import com.daimajia.slider.library.SliderLayout;
 import com.daimajia.slider.library.SliderTypes.BaseSliderView;
+import com.daimajia.slider.library.SliderTypes.SlideImageLoader;
 import com.daimajia.slider.library.SliderTypes.TextSliderView;
 import com.daimajia.slider.library.Tricks.ViewPagerEx;
+import com.squareup.picasso.Callback;
+import com.squareup.picasso.Picasso;
+import com.squareup.picasso.RequestCreator;
 
+import java.io.File;
 import java.util.HashMap;
 
+import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.annotations.NonNull;
 
-public class MainActivity extends ActionBarActivity implements BaseSliderView.OnSliderClickListener, ViewPagerEx.OnPageChangeListener{
+
+public class MainActivity extends AppCompatActivity implements BaseSliderView.OnSliderClickListener, ViewPagerEx.OnPageChangeListener, SlideImageLoader{
 
     private SliderLayout mDemoSlider;
 
@@ -46,13 +60,15 @@ public class MainActivity extends ActionBarActivity implements BaseSliderView.On
         file_maps.put("House of Cards",R.drawable.house);
         file_maps.put("Game of Thrones", R.drawable.game_of_thrones);
 
+
         for(String name : file_maps.keySet()){
             TextSliderView textSliderView = new TextSliderView(this);
             // initialize a SliderLayout
             textSliderView
+                    .loader(this)
                     .description(name)
                     .image(file_maps.get(name))
-                    .setScaleType(BaseSliderView.ScaleType.Fit)
+                    .setScaleType(SlideImageLoader.ScaleType.Fit)
                     .setOnSliderClickListener(this);
 
             //add your extra information
@@ -130,4 +146,47 @@ public class MainActivity extends ActionBarActivity implements BaseSliderView.On
 
     @Override
     public void onPageScrollStateChanged(int state) {}
+
+    @Override
+    public Observable load(ImageView view, ScaleType scaleType, String url) {
+        return toObservable(getPicasso().load(url), scaleType, view);
+    }
+
+    @Override
+    public Observable load(ImageView view, ScaleType scaleType, File file) {
+        return toObservable(getPicasso().load(file), scaleType, view);
+    }
+
+    @Override
+    public Observable load(ImageView view, ScaleType scaleType, int res) {
+        return toObservable(getPicasso().load(res), scaleType, view);
+    }
+
+    private Picasso mPicasso;
+    private Picasso getPicasso() {
+        if (mPicasso == null) {
+            mPicasso = Picasso.with(this);
+        }
+
+        return mPicasso;
+    }
+    private Observable toObservable(final RequestCreator creator, ScaleType scaleType, final ImageView view) {
+        return Observable.create(new ObservableOnSubscribe<ImageView>() {
+            @Override
+            public void subscribe(@NonNull final ObservableEmitter<ImageView> e) throws Exception {
+                creator.into(view, new Callback() {
+                    @Override
+                    public void onSuccess() {
+                        e.onNext(view);
+                        e.onComplete();
+                    }
+
+                    @Override
+                    public void onError() {
+                        e.onError(new Exception("Failed to load image."));
+                    }
+                });
+            }
+        });
+    }
 }

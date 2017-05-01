@@ -2,15 +2,16 @@ package com.daimajia.slider.library.SliderTypes;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.transition.Slide;
 import android.view.View;
 import android.widget.ImageView;
 
 import com.daimajia.slider.library.R;
-import com.squareup.picasso.Callback;
-import com.squareup.picasso.Picasso;
-import com.squareup.picasso.RequestCreator;
+import com.google.common.base.Optional;
 
 import java.io.File;
+
+import io.reactivex.Observable;
 
 /**
  * When you want to make your own slider view, you must extends from this class.
@@ -20,24 +21,14 @@ import java.io.File;
  * if you want to show progressbar, you just need to set a progressbar id as @+id/loading_bar.
  */
 public abstract class BaseSliderView {
-
     protected Context mContext;
 
     private Bundle mBundle;
 
-    /**
-     * Error place holder image.
-     */
-    private int mErrorPlaceHolderRes;
-
-    /**
-     * Empty imageView placeholder.
-     */
-    private int mEmptyPlaceHolderRes;
-
     private String mUrl;
     private File mFile;
     private int mRes;
+    private Optional<SlideImageLoader> mImageLoader = Optional.absent();
 
     protected OnSliderClickListener mOnSliderClickListener;
 
@@ -47,28 +38,21 @@ public abstract class BaseSliderView {
 
     private String mDescription;
 
-    private Picasso mPicasso;
-
     /**
      * Scale type of the image.
      */
-    private ScaleType mScaleType = ScaleType.Fit;
-
-    public enum ScaleType{
-        CenterCrop, CenterInside, Fit, FitCenterCrop
-    }
+    private SlideImageLoader.ScaleType mScaleType = SlideImageLoader.ScaleType.Fit;
 
     protected BaseSliderView(Context context) {
         mContext = context;
     }
 
-    /**
-     * the placeholder image when loading image from url or file.
-     * @param resId Image resource id
-     * @return
+    /*
+     * set imager loader
+     * @param loader Image loading support
      */
-    public BaseSliderView empty(int resId){
-        mEmptyPlaceHolderRes = resId;
+    public BaseSliderView loader(SlideImageLoader loader){
+        mImageLoader = Optional.of(loader);
         return this;
     }
 
@@ -79,16 +63,6 @@ public abstract class BaseSliderView {
      */
     public BaseSliderView errorDisappear(boolean disappear){
         mErrorDisappear = disappear;
-        return this;
-    }
-
-    /**
-     * if you set errorDisappear false, this will set a error placeholder image.
-     * @param resId image resource id
-     * @return
-     */
-    public BaseSliderView error(int resId){
-        mErrorPlaceHolderRes = resId;
         return this;
     }
 
@@ -157,14 +131,6 @@ public abstract class BaseSliderView {
         return mErrorDisappear;
     }
 
-    public int getEmpty(){
-        return mEmptyPlaceHolderRes;
-    }
-
-    public int getError(){
-        return mErrorPlaceHolderRes;
-    }
-
     public String getDescription(){
         return mDescription;
     }
@@ -207,71 +173,41 @@ public abstract class BaseSliderView {
             mLoadListener.onStart(me);
         }
 
-        // TODO: use a interface instead of loading image here. Then remove dependency on picasso.
-        Picasso p = (mPicasso != null) ? mPicasso : Picasso.with(mContext);
-        RequestCreator rq = null;
-        if(mUrl!=null){
-            rq = p.load(mUrl);
-        }else if(mFile != null){
-            rq = p.load(mFile);
-        }else if(mRes != 0){
-            rq = p.load(mRes);
-        }else{
-            return;
-        }
-
-        if(rq == null){
-            return;
-        }
-
-        if(getEmpty() != 0){
-            rq.placeholder(getEmpty());
-        }
-
-        if(getError() != 0){
-            rq.error(getError());
-        }
-
-        switch (mScaleType){
-            case Fit:
-                rq.fit();
-                break;
-            case CenterCrop:
-                rq.fit().centerCrop();
-                break;
-            case CenterInside:
-                rq.fit().centerInside();
-                break;
-        }
-
-        rq.into(targetImageView,new Callback() {
-            @Override
-            public void onSuccess() {
-                if(v.findViewById(R.id.loading_bar) != null){
+        if (mImageLoader.isPresent()) {
+            SlideImageLoader loader = mImageLoader.get();
+            Observable ob;
+            if(mUrl!=null){
+                ob = loader.load(targetImageView, mScaleType, mUrl);
+            }else if(mFile != null){
+                ob = loader.load(targetImageView, mScaleType, mFile);
+            }else if(mRes != 0){
+                ob = loader.load(targetImageView, mScaleType, mRes);
+            }else{
+                return;
+            }
+            ob.subscribe(aVoid -> {
+                if (v.findViewById(R.id.loading_bar) != null) {
                     v.findViewById(R.id.loading_bar).setVisibility(View.INVISIBLE);
                 }
-            }
-
-            @Override
-            public void onError() {
+            }, error -> {
                 if(mLoadListener != null){
                     mLoadListener.onEnd(false,me);
                 }
                 if(v.findViewById(R.id.loading_bar) != null){
                     v.findViewById(R.id.loading_bar).setVisibility(View.INVISIBLE);
                 }
-            }
-        });
+            });
+        }
    }
 
 
 
-    public BaseSliderView setScaleType(ScaleType type){
+    public BaseSliderView setScaleType(SlideImageLoader.ScaleType type){
         mScaleType = type;
         return this;
     }
 
-    public ScaleType getScaleType(){
+    public SlideImageLoader.ScaleType getScaleType(){
         return mScaleType;
     }
 
@@ -306,27 +242,6 @@ public abstract class BaseSliderView {
         public void onStart(BaseSliderView target);
         public void onEnd(boolean result,BaseSliderView target);
     }
-
-    /**
-     * Get the last instance set via setPicasso(), or null if no user provided instance was set
-     *
-     * @return The current user-provided Picasso instance, or null if none
-     */
-    public Picasso getPicasso() {
-        return mPicasso;
-    }
-
-    /**
-     * Provide a Picasso instance to use when loading pictures, this is useful if you have a
-     * particular HTTP cache you would like to share.
-     *
-     * @param picasso The Picasso instance to use, may be null to let the system use the default
-     *                instance
-     */
-    public void setPicasso(Picasso picasso) {
-        mPicasso = picasso;
-    }
-
 
     /*
      * Allow slider to free resource.
